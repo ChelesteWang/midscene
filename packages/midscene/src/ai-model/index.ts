@@ -11,5 +11,6 @@ export {
   transformElementPositionToId,
 } from './inspect';
 
-export { plan } from './automation';
+export { plan } from './prompt/plan_call';
+export { planToGoal } from './prompt/plan_to_goal';
 export { callAiFn } from './common';

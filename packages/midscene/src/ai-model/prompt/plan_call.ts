@@ -6,8 +6,8 @@ import {
   callAiFn,
   transformUserMessages,
 } from '../common';
-import { systemPromptToTaskPlanning } from '../prompt/planning';
-import { describeUserPage } from '../prompt/util';
+import { systemPromptToTaskPlanning } from './planning';
+import { describeUserPage } from './util';
 
 export async function plan(
   userPrompt: string,

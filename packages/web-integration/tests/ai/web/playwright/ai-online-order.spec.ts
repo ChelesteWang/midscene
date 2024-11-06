@@ -1,4 +1,7 @@
+import { parseContextFromWebPage } from '@/common/utils';
 import { generateTestDataPath } from '@/debug';
+import { PlaywrightWebPage } from '@/playwright';
+import { planToGoal } from '@midscene/core/ai-model';
 import { expect } from 'playwright/test';
 import { test } from './fixture';
 
@@ -42,4 +45,37 @@ test('ai online order', async ({ ai, page, aiQuery }) => {
   });
   expect(cardDetail.productName).toContain('多肉葡萄');
   expect(cardDetail.productDescription).toContain('绿妍');
+});
+
+test('ai todo plan to goal', async ({ ai, aiQuery, page }) => {
+  const target = `
+   1. 在首页时随便点击一个饮品进入下单流程即可
+   2. 在饮品选择规格页，逐步选择规格（规格可能分成多页，注意滚动保证每个规格都选择好了），规格中我想要热饮少糖，规格页下面一般都有确认下单按钮
+  `;
+  const tasks: { prompt: string; reason: string }[] = [];
+  while (true) {
+    const nPage = new PlaywrightWebPage(page);
+    const context = await parseContextFromWebPage(nPage);
+    const isBottom = await page.evaluate(() => {
+      return (
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight
+      );
+    });
+    const plan = await planToGoal(
+      {
+        target,
+        isBottom: false,
+      },
+      {
+        context,
+      },
+    );
+    console.log('plan: ', plan);
+    if (plan.isDone) {
+      break;
+    }
+    await ai(plan.action.prompt);
+    tasks.push(plan.action);
+  }
 });
