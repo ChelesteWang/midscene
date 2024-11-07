@@ -53,6 +53,7 @@ test('ai todo plan to goal', async ({ ai, aiQuery, page }) => {
    2. 在饮品选择规格页，逐步选择规格（规格可能分成多页，注意滚动保证每个规格都选择好了），规格中我想要热饮少糖，规格页下面一般都有确认下单按钮
   `;
   const tasks: { prompt: string; reason: string }[] = [];
+  let completedTasks = '';
   while (true) {
     const nPage = new PlaywrightWebPage(page);
     const context = await parseContextFromWebPage(nPage);
@@ -66,11 +67,13 @@ test('ai todo plan to goal', async ({ ai, aiQuery, page }) => {
       {
         target,
         isBottom: false,
+        completedTasks,
       },
       {
         context,
       },
     );
+    completedTasks = plan.action.completedTasks;
     console.log('plan: ', plan);
     if (plan.isDone) {
       break;

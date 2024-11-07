@@ -31,6 +31,7 @@ export function systemPromptToPlanToGoal() {
 2. 注意下一步的任务必须要基于当前页面的内容，不要编造内容
 3. 如果当前页面已经处于目标状态，请返回 isDone: true
 4. 注意在滚动页面前必须要把当前页面的任务完成，一般任务都可以看到是否为必选选项（重要！）
+5. 请注意 action 的 prompt 中的任务一定要基于当前页面的内容规划出来的不要捏造
 
 
 ## 输出格式
@@ -49,10 +50,19 @@ export function systemPromptToPlanToGoal() {
        "prompt": string,
 
        // 描述 prompt 生成的原因
-       "reason": string
+       "reason": string,
 
        // 当前在什么页面做什么任务
-       "pageDescription": string
+       "pageDescription": string,
+
+       // 描述当前已经完成了多少任务
+       // 基于之前已经完成的任务基础之上，将 prompt 生成的任务和之前已经完成的任务合并在一起
+       // 注意：completedTasks 是概括性的描述，基于用户的目标来生成已经完成的任务，比如用户需要下单，选择规格。那完成的任务应该描述为已经完成了其中哪些步骤
+       // completedTasks 举例：
+       // 1.在首页：点击了 xxx 饮品的下单按钮
+       // 2.在饮品选择规格页：选择了 xxx 规格...，... 
+       // 3. xxx，最终完成了 xx 任务
+       "completedTasks": string
     },
     "isDone": boolean // 如果已经达到了目标，请返回 true，否则返回 false
   }
@@ -64,7 +74,7 @@ type PlanToGoalAIResponse = {
   action: {
     prompt: string;
     reason: string;
-    pageDescription: string;
+    completedTasks: string;
   };
   isDone: boolean;
 };
@@ -73,6 +83,7 @@ export async function planToGoal(
   userPrompt: {
     target: string;
     isBottom: boolean;
+    completedTasks: string;
   },
   opts: {
     context: UIContext;
@@ -117,6 +128,9 @@ export async function planToGoal(
               \n
               用户希望页面达成的目标状态：
               ${userPrompt.target}
+
+              之前已经完成的任务：
+              ${userPrompt.completedTasks}
               =====================================
             `,
         },
